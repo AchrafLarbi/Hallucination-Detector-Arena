@@ -1,0 +1,16 @@
+# Runtime dependencies of the web app (Hugging Face Spaces installs this file;
+# Gradio itself comes from `sdk_version` in README.md).
+# torch: Hugging Face ZeroGPU only accepts some versions (2.13.0, 2.12.1, ...).
+# transformers 4.x: Vectara HHEM's custom model code does not load with transformers 5.
+torch==2.13.0
+transformers==4.57.6
+huggingface_hub==0.36.2
+sentencepiece==0.2.2
+protobuf
+numpy==2.5.3
+pandas==2.3.3   # gradio 5.50 requires pandas<3
+scikit-learn==1.9.1
+scipy==1.18.1
+matplotlib==3.11.2
+requests
+python-dotenv

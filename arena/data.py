@@ -33,3 +33,19 @@ def load_halubench(path: Optional[Path] = None) -> pd.DataFrame:
         question=df["question"].fillna("").astype(str),
         answer=df["answer"].fillna("").astype(str),
     )
+
+
+def sample_study(df: pd.DataFrame, per_label: int = 40, max_context_words: int = 1500, seed: int = 13) -> pd.DataFrame:
+    """`per_label` hallucinated + `per_label` faithful examples per source, split 50/50 into dev/test.
+
+    Contexts longer than `max_context_words` are excluded for every detector, so all detectors are
+    compared on the same examples (the LLM judge's API cannot take very long contexts).
+    """
+    df = df[df["context"].str.split().str.len() <= max_context_words]
+    parts = []
+    for (source, label), group in df.groupby(["source", "hallucinated"], sort=True):
+        g = group.sample(n=min(per_label, len(group)), random_state=seed).reset_index(drop=True)
+        g["split"] = ["dev" if i < len(g) // 2 else "test" for i in range(len(g))]
+        parts.append(g)
+    cols = ["id", "source", "split", "hallucinated", "question", "answer", "context"]
+    return pd.concat(parts, ignore_index=True)[cols]

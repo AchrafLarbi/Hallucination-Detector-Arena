@@ -20,3 +20,11 @@ def balanced_accuracy(y, pred) -> float:
 
 def f1_hallucinated(y, pred) -> float:
     return float(f1_score(y, pred, pos_label=1, zero_division=0))
+
+
+def best_threshold(y, support) -> float:
+    """Threshold maximising balanced accuracy (tuned on the dev split only)."""
+    s = np.unique(np.asarray(support))
+    candidates = np.concatenate([[0.0], (s[:-1] + s[1:]) / 2, [1.0 + 1e-9]]) if len(s) > 1 else np.array([0.5])
+    scores = [balanced_accuracy(y, predict(support, t)) for t in candidates]
+    return float(candidates[int(np.argmax(scores))])

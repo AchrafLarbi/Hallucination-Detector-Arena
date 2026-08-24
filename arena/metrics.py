@@ -1,7 +1,8 @@
 """Evaluation statistics. Positive class = hallucinated (1); detectors output support (high = faithful)."""
 
 import numpy as np
-from sklearn.metrics import balanced_accuracy_score, f1_score, roc_auc_score
+from scipy.stats import binomtest
+from sklearn.metrics import balanced_accuracy_score, cohen_kappa_score, f1_score, roc_auc_score
 
 
 def predict(support, threshold: float) -> np.ndarray:
@@ -40,7 +41,20 @@ def bootstrap_ci(metric, y, values, n: int = 2000, seed: int = 0, alpha: float =
         if len(set(y[idx])) < 2:
             continue
         stats.append(metric(y[idx], values[idx]))
-    if not stats:
+    if not stats:  # e.g. a single class: the metric is undefined
         return float("nan"), float("nan")
     lo, hi = np.nanpercentile(stats, [100 * alpha / 2, 100 * (1 - alpha / 2)])
     return float(lo), float(hi)
+
+
+def mcnemar_p(correct_a, correct_b) -> float:
+    """Exact McNemar test on paired correctness (two-sided)."""
+    a, b = np.asarray(correct_a, bool), np.asarray(correct_b, bool)
+    only_a, only_b = int(np.sum(a & ~b)), int(np.sum(~a & b))
+    if only_a + only_b == 0:
+        return 1.0
+    return float(binomtest(only_a, only_a + only_b, 0.5).pvalue)
+
+
+def kappa(pred_a, pred_b) -> float:
+    return float(cohen_kappa_score(pred_a, pred_b))

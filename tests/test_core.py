@@ -41,3 +41,13 @@ def test_best_threshold_maximises_balanced_accuracy():
     support = np.array([0.1, 0.2, 0.3, 0.35, 0.8, 0.9])
     t = M.best_threshold(y, support)
     assert 0.3 < t <= 0.35 and M.balanced_accuracy(y, M.predict(support, t)) == 1.0
+
+
+def test_mcnemar_and_bootstrap():
+    assert M.mcnemar_p([1, 1, 1], [1, 1, 1]) == 1.0
+    assert M.mcnemar_p([1] * 12, [0] * 12) < 0.001
+    rng = np.random.default_rng(0)
+    y = np.array([0, 1] * 50)
+    s = np.clip(0.5 - 0.3 * y + rng.normal(0, 0.2, 100), 0, 1)
+    lo, hi = M.bootstrap_ci(M.auroc, y, s, n=300)
+    assert lo <= M.auroc(y, s) <= hi

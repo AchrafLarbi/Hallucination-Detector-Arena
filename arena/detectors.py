@@ -1,0 +1,116 @@
+"""Hallucination detectors behind one interface."""
+
+import math
+import os
+import time
+from dataclasses import dataclass, field
+
+import numpy as np
+
+from .text import chunk_by_tokens, make_claim
+
+
+@dataclass
+class Verdict:
+    detector: str
+    support: float
+    details: list = field(default_factory=list)
+    seconds: float = 0.0
+    error: str = ""
+
+    @property
+    def hallucination_score(self) -> float:
+        return 1.0 - self.support
+
+
+class Detector:
+    key = ""
+    name = ""
+    description = ""
+    default_threshold = 0.5
+
+    def score(self, context: str, question: str, answer: str) -> Verdict:
+        start = time.perf_counter()
+        try:
+            support, details = self._score(context, question, answer)
+            error = ""
+        except Exception as e:
+            support, details, error = math.nan, [], f"{type(e).__name__}: {e}"
+        return Verdict(self.key, float(support), details, time.perf_counter() - start, error)
+
+    def _score(self, context, question, answer):
+        raise NotImplementedError
+
+
+def _softmax(logits):
+    import torch
+
+    return torch.nn.functional.softmax(logits.float(), dim=-1)
+
+
+class _CrossEncoderDetector(Detector):
+    model_id = ""
+    max_length = 512
+    chunk_tokens = 400
+    batch_size = 8
+
+    def __init__(self):
+        import torch
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
+        self.model = AutoModelForSequenceClassification.from_pretrained(self.model_id).eval()
+        self.torch = torch
+
+    def _on_device(self, enc):
+        return {k: v.to(self.model.device) for k, v in enc.items()}
+
+    def _count_tokens(self, text: str) -> int:
+        return len(self.tokenizer(text, add_special_tokens=False, truncation=True,
+                                  max_length=self.max_length)["input_ids"])
+
+    def _chunks(self, context: str) -> list:
+        return chunk_by_tokens(context, self._count_tokens, self.chunk_tokens)
+
+    def _support_probs(self, chunks: list, claim: str) -> np.ndarray:
+        raise NotImplementedError
+
+    def _max_over_chunks(self, context: str, claim: str) -> float:
+        return float(self._support_probs(self._chunks(context), claim).max())
+
+
+class NLIBaseline(_CrossEncoderDetector):
+    key = "nli"
+    name = "NLI baseline (DeBERTa-v3-base)"
+    description = "Generic natural-language-inference model: does the context entail the answer?"
+    model_id = "cross-encoder/nli-deberta-v3-base"
+
+    def __init__(self):
+        super().__init__()
+        labels = {v.lower(): int(k) for k, v in self.model.config.id2label.items()}
+        self.entail_idx = labels["entailment"]
+
+    def _support_probs(self, chunks, claim):
+        out = []
+        for i in range(0, len(chunks), self.batch_size):
+            batch = chunks[i:i + self.batch_size]
+            enc = self.tokenizer(batch, [claim] * len(batch), truncation="only_first",
+                                 max_length=self.max_length, padding=True, return_tensors="pt")
+            with self.torch.no_grad():
+                out.append(_softmax(self.model(**self._on_device(enc)).logits)[:, self.entail_idx].cpu().numpy())
+        return np.concatenate(out)
+
+    def _score(self, context, question, answer):
+        claim = make_claim(question, answer)
+        s = self._max_over_chunks(context, claim)
+        return s, [(answer, s)]
+
+
+LOCAL_DETECTORS = (NLIBaseline,)
+
+
+def load_local_detectors() -> list:
+    import torch
+
+    torch.set_num_threads(max(1, os.cpu_count() or 1))
+    return [cls() for cls in LOCAL_DETECTORS]

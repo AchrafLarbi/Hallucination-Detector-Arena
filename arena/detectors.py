@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .text import chunk_by_tokens, make_claim
+from .text import chunk_by_tokens, make_claim, make_sentence_claims
 
 
 @dataclass
@@ -106,7 +106,32 @@ class NLIBaseline(_CrossEncoderDetector):
         return s, [(answer, s)]
 
 
-LOCAL_DETECTORS = (NLIBaseline,)
+class MiniCheck(_CrossEncoderDetector):
+    key = "minicheck"
+    name = "MiniCheck (RoBERTa-Large)"
+    description = "Fact-checker trained to verify each sentence against a grounding document (EMNLP 2024)."
+    model_id = "lytang/MiniCheck-RoBERTa-Large"
+
+    def _support_probs(self, chunks, claim):
+        eos = self.tokenizer.eos_token
+        texts = [f"{c}{eos}{claim}" for c in chunks]
+        out = []
+        for i in range(0, len(texts), self.batch_size):
+            enc = self.tokenizer(texts[i:i + self.batch_size], max_length=self.max_length,
+                                 truncation=True, padding=True, return_tensors="pt")
+            with self.torch.no_grad():
+                out.append(_softmax(self.model(**self._on_device(enc)).logits)[:, 1].cpu().numpy())
+        return np.concatenate(out)
+
+    def _score(self, context, question, answer):
+        chunks = self._chunks(context)
+        claims = make_sentence_claims(question, answer)
+        sentences = make_sentence_claims("", answer)
+        scores = [float(self._support_probs(chunks, c).max()) for c in claims]
+        return min(scores), list(zip(sentences, scores))
+
+
+LOCAL_DETECTORS = (NLIBaseline, MiniCheck)
 
 
 def load_local_detectors() -> list:

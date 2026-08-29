@@ -131,7 +131,25 @@ class MiniCheck(_CrossEncoderDetector):
         return min(scores), list(zip(sentences, scores))
 
 
-LOCAL_DETECTORS = (NLIBaseline, MiniCheck)
+class HHEM(Detector):
+    key = "hhem"
+    name = "Vectara HHEM-2.1-Open"
+    description = "Hallucination evaluation model from Vectara (T5-based, long context)."
+    model_id = "vectara/hallucination_evaluation_model"
+
+    def __init__(self):
+        from transformers import AutoModelForSequenceClassification
+
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            self.model_id, trust_remote_code=True
+        ).eval()
+
+    def _score(self, context, question, answer):
+        s = float(self.model.predict([(context, make_claim(question, answer))])[0])
+        return s, [(answer, s)]
+
+
+LOCAL_DETECTORS = (NLIBaseline, MiniCheck, HHEM)
 
 
 def load_local_detectors() -> list:

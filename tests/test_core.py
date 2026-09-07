@@ -2,6 +2,7 @@
 
 import pytest
 
+from arena.detectors import parse_judge
 from arena.text import chunk_by_tokens, make_claim, make_sentence_claims, split_sentences
 
 
@@ -23,6 +24,25 @@ def test_chunk_by_tokens_packs_sentences_under_budget():
     chunks = chunk_by_tokens(text, lambda s: len(s.split()), max_tokens=6)
     assert chunks == ["One two three. Four five six.", "Seven eight nine."]
     assert chunk_by_tokens("", lambda s: 0, 5) == [""]
+
+
+# ---------------- judge parsing ----------------
+@pytest.mark.parametrize("raw, expected", [
+    ('{"support_probability": 85, "reason": "ok"}', 0.85),
+    ('Sure:\n```json\n{"support_probability": 0, "reason": "contradiction"}\n```', 0.0),
+    ('{"support_probability": "ninety", "reason": "seen in the wild"}', 0.90),
+    ('{"support_probability": "ninety-five"}', 0.95),
+    ('{"support_probability": "one hundred"}', 1.0),
+    ('{"support_probability": "70%"}', 0.70),
+])
+def test_parse_judge(raw, expected):
+    assert parse_judge(raw)[0] == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("raw", ["no json here", '{"support_probability": 150}', '{"reason": "x"}'])
+def test_parse_judge_rejects_unusable_answers(raw):
+    with pytest.raises((ValueError, KeyError)):
+        parse_judge(raw)
 
 
 # ---------------- metrics ----------------

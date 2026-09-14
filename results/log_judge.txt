@@ -1,0 +1,12 @@
+[llm_judge] 480 examples to score
+[llm_judge] 20/480  (6.40s/example)
+[llm_judge] 40/480  (6.53s/example)
+[llm_judge] 60/480  (6.58s/example)
+[llm_judge] 80/480  (6.60s/example)
+[llm_judge] 100/480  (6.82s/example)
+[llm_judge] 120/480  (7.08s/example)
+[llm_judge] 140/480  (7.42s/example)
+[llm_judge] 160/480  (7.73s/example)
+[llm_judge] 180/480  (7.61s/example)
+[llm_judge] 200/480  (7.52s/example)
+[llm_judge] 220/480  (7.44s/example)

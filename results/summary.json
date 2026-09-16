@@ -1,0 +1,207 @@
+{
+  "generated_at": "2026-10-03 12:34",
+  "n_examples": 480,
+  "n_by_split": {
+    "dev": 240,
+    "test": 240
+  },
+  "sources": {
+    "DROP": "DROP (reading comprehension)",
+    "FinanceBench": "FinanceBench (finance)",
+    "RAGTruth": "RAGTruth (open RAG answers)",
+    "covidQA": "CovidQA (biomedical)",
+    "halueval": "HaluEval (general QA)",
+    "pubmedQA": "PubMedQA (biomedical)"
+  },
+  "detectors": {
+    "nli": {
+      "name": "NLI baseline (DeBERTa-v3-base)",
+      "n_scored": 480,
+      "n_failed": 0,
+      "test_auroc": 0.5764,
+      "test_auroc_ci": [
+        0.5018,
+        0.6437
+      ],
+      "default_threshold": 0.5,
+      "test_bal_acc_default": 0.5833,
+      "test_bal_acc_default_ci": [
+        0.5357,
+        0.6288
+      ],
+      "calibrated_threshold": 0.024,
+      "test_bal_acc_calibrated": 0.5833,
+      "test_bal_acc_calibrated_ci": [
+        0.5214,
+        0.6454
+      ],
+      "test_f1_calibrated": 0.6269,
+      "test_precision_calibrated": 0.5676,
+      "test_recall_calibrated": 0.7,
+      "test_per_source_auroc": {
+        "DROP": {
+          "auroc": 0.535,
+          "n": 40
+        },
+        "FinanceBench": {
+          "auroc": 0.6275,
+          "n": 40
+        },
+        "RAGTruth": {
+          "auroc": 0.6125,
+          "n": 40
+        },
+        "covidQA": {
+          "auroc": 0.5175,
+          "n": 40
+        },
+        "halueval": {
+          "auroc": 0.6425,
+          "n": 40
+        },
+        "pubmedQA": {
+          "auroc": 0.5225,
+          "n": 40
+        }
+      },
+      "median_seconds": 0.561
+    },
+    "minicheck": {
+      "name": "MiniCheck (RoBERTa-Large)",
+      "n_scored": 480,
+      "n_failed": 0,
+      "test_auroc": 0.6718,
+      "test_auroc_ci": [
+        0.6,
+        0.7411
+      ],
+      "default_threshold": 0.5,
+      "test_bal_acc_default": 0.5917,
+      "test_bal_acc_default_ci": [
+        0.5443,
+        0.641
+      ],
+      "calibrated_threshold": 0.0759,
+      "test_bal_acc_calibrated": 0.6125,
+      "test_bal_acc_calibrated_ci": [
+        0.5523,
+        0.6738
+      ],
+      "test_f1_calibrated": 0.583,
+      "test_precision_calibrated": 0.6311,
+      "test_recall_calibrated": 0.5417,
+      "test_per_source_auroc": {
+        "DROP": {
+          "auroc": 0.495,
+          "n": 40
+        },
+        "FinanceBench": {
+          "auroc": 0.505,
+          "n": 40
+        },
+        "RAGTruth": {
+          "auroc": 0.8375,
+          "n": 40
+        },
+        "covidQA": {
+          "auroc": 0.9175,
+          "n": 40
+        },
+        "halueval": {
+          "auroc": 0.7825,
+          "n": 40
+        },
+        "pubmedQA": {
+          "auroc": 0.615,
+          "n": 40
+        }
+      },
+      "median_seconds": 2.737
+    },
+    "hhem": {
+      "name": "Vectara HHEM-2.1-Open",
+      "n_scored": 480,
+      "n_failed": 0,
+      "test_auroc": 0.6377,
+      "test_auroc_ci": [
+        0.5638,
+        0.7045
+      ],
+      "default_threshold": 0.5,
+      "test_bal_acc_default": 0.6125,
+      "test_bal_acc_default_ci": [
+        0.5534,
+        0.6776
+      ],
+      "calibrated_threshold": 0.7461,
+      "test_bal_acc_calibrated": 0.6083,
+      "test_bal_acc_calibrated_ci": [
+        0.5488,
+        0.6641
+      ],
+      "test_f1_calibrated": 0.6594,
+      "test_precision_calibrated": 0.5833,
+      "test_recall_calibrated": 0.7583,
+      "test_per_source_auroc": {
+        "DROP": {
+          "auroc": 0.4625,
+          "n": 40
+        },
+        "FinanceBench": {
+          "auroc": 0.5375,
+          "n": 40
+        },
+        "RAGTruth": {
+          "auroc": 0.785,
+          "n": 40
+        },
+        "covidQA": {
+          "auroc": 0.765,
+          "n": 40
+        },
+        "halueval": {
+          "auroc": 0.78,
+          "n": 40
+        },
+        "pubmedQA": {
+          "auroc": 0.525,
+          "n": 40
+        }
+      },
+      "median_seconds": 0.421
+    }
+  },
+  "pairwise": [
+    {
+      "a": "nli",
+      "b": "minicheck",
+      "n": 240,
+      "mcnemar_p": 0.5657,
+      "kappa": 0.1207,
+      "both_wrong": 42
+    },
+    {
+      "a": "nli",
+      "b": "hhem",
+      "n": 240,
+      "mcnemar_p": 0.6063,
+      "kappa": 0.1577,
+      "both_wrong": 50
+    },
+    {
+      "a": "minicheck",
+      "b": "hhem",
+      "n": 240,
+      "mcnemar_p": 1.0,
+      "kappa": 0.4964,
+      "both_wrong": 62
+    }
+  ],
+  "in_progress": {
+    "llm_judge": {
+      "name": "LLM judge (gpt-oss-120b)",
+      "n_scored": 224,
+      "n_total": 480
+    }
+  }
+}

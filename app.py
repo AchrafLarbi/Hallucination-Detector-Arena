@@ -356,6 +356,8 @@ with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(),
         if SUMMARY.get("in_progress"):
             gr.Markdown(in_progress_markdown(), elem_classes=["note"])
         gr.Dataframe(leaderboard(), label="Leaderboard (test half)", interactive=False, wrap=True)
+        with gr.Row():
+            gr.Plot(heatmap_figure(), label="Domain dependence")
         gr.Dataframe(pairwise_table(), label="Do detectors agree? (test half, tuned thresholds)", interactive=False)
 
     with gr.Tab("Method"):

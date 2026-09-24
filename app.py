@@ -358,6 +358,8 @@ with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(),
         gr.Dataframe(leaderboard(), label="Leaderboard (test half)", interactive=False, wrap=True)
         with gr.Row():
             gr.Plot(heatmap_figure(), label="Domain dependence")
+        with gr.Row():
+            gr.Plot(threshold_figure(), label="Thresholds")
         gr.Dataframe(pairwise_table(), label="Do detectors agree? (test half, tuned thresholds)", interactive=False)
 
     with gr.Tab("Method"):

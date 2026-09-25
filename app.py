@@ -362,6 +362,27 @@ with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(),
             gr.Plot(threshold_figure(), label="Thresholds")
         gr.Dataframe(pairwise_table(), label="Do detectors agree? (test half, tuned thresholds)", interactive=False)
 
+    with gr.Tab("Try it"):
+        gr.Markdown("Paste a context, a question and an answer: each detector says whether the answer is supported. "
+                    "Verdicts use the thresholds tuned in the study.", elem_classes=["note"])
+        with gr.Row():
+            with gr.Column(scale=3):
+                ctx = gr.Textbox(label="Context (source document)", lines=9, max_lines=20)
+                q = gr.Textbox(label="Question")
+                a = gr.Textbox(label="Answer to check", lines=3)
+                use_judge = gr.Checkbox(label="Include the LLM judge (sends the text to the Groq API)",
+                                        value=JUDGE is not None, interactive=JUDGE is not None)
+                btn = gr.Button("Check the answer", variant="primary")
+            with gr.Column(scale=2):
+                verdict_md = gr.Markdown()
+                verdict_table = gr.Dataframe(interactive=False, wrap=True)
+                sentence_view = gr.HighlightedText(label="MiniCheck, sentence by sentence",
+                                                   color_map={"supported": "green", "unsupported": "red"})
+        ex_values, ex_labels = playground_examples()
+        gr.Examples(ex_values, inputs=[ctx, q, a, use_judge], example_labels=ex_labels,
+                    label="Examples from the test set (ground truth in the label)")
+        btn.click(check_answer, [ctx, q, a, use_judge], [verdict_md, verdict_table, sentence_view], concurrency_limit=2)
+
     with gr.Tab("Method"):
         gr.Markdown(METHOD)
 

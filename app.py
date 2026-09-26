@@ -257,6 +257,7 @@ def check_answer(context, question, answer, use_judge):
     return summary, table, sentences or [(answer, None)]
 
 
+# Explorer tab implemented next
 # ======================= Explore the study =======================
 def explore(source: str, only_disagreements: bool):
     df, correct = TEST, TEST_CORRECT

@@ -257,7 +257,6 @@ def check_answer(context, question, answer, use_judge):
     return summary, table, sentences or [(answer, None)]
 
 
-# Explorer tab implemented next
 # ======================= Explore the study =======================
 def explore(source: str, only_disagreements: bool):
     df, correct = TEST, TEST_CORRECT
@@ -383,6 +382,20 @@ with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(),
         gr.Examples(ex_values, inputs=[ctx, q, a, use_judge], example_labels=ex_labels,
                     label="Examples from the test set (ground truth in the label)")
         btn.click(check_answer, [ctx, q, a, use_judge], [verdict_md, verdict_table, sentence_view], concurrency_limit=2)
+
+    with gr.Tab("Explore the study"):
+        with gr.Row():
+            src = gr.Dropdown(["All domains"] + [SOURCE_NAMES.get(s, s) for s in SUMMARY["sources"]],
+                              value="All domains", label="Domain")
+            disagree = gr.Checkbox(label="Only examples where detectors disagree", value=True)
+        info = gr.Markdown()
+        ids = gr.State([])
+        ex_table = gr.Dataframe(interactive=False, wrap=True, max_height=420)
+        detail = gr.Markdown()
+        for comp in (src, disagree):
+            comp.change(explore, [src, disagree], [ex_table, ids, info], show_api=False)
+        ex_table.select(show_example, [ids], detail)
+        demo.load(explore, [src, disagree], [ex_table, ids, info], show_api=False)
 
     with gr.Tab("Method"):
         gr.Markdown(METHOD)

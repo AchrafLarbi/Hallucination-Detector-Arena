@@ -343,7 +343,7 @@ trusting them) was inspired by [LLM-hallucination-Research](https://github.com/D
 by Dharambir Agrawal; all code here is original. Results generated {SUMMARY['generated_at']}.
 """
 
-with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(),
+with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(), fill_width=False,
                css=".note {font-size: 0.9em; color: #4a5568}") as demo:
     gr.Markdown(
         "# Hallucination Detector Arena\n"

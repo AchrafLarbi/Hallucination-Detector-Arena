@@ -2,7 +2,9 @@
 
 import os
 
-ON_ZERO_GPU = False
+ON_ZERO_GPU = os.getenv("SPACES_ZERO_GPU", "").lower() in ("1", "t", "true")
+if ON_ZERO_GPU:  # Hugging Face ZeroGPU: `spaces` must be imported before torch
+    import spaces
 
 import json
 import threading
@@ -343,7 +345,7 @@ trusting them) was inspired by [LLM-hallucination-Research](https://github.com/D
 by Dharambir Agrawal; all code here is original. Results generated {SUMMARY['generated_at']}.
 """
 
-with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(), fill_width=False,
+with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(),
                css=".note {font-size: 0.9em; color: #4a5568}") as demo:
     gr.Markdown(
         "# Hallucination Detector Arena\n"

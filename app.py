@@ -404,4 +404,4 @@ with gr.Blocks(title="Hallucination Detector Arena", theme=gr.themes.Soft(),
 
 
 if __name__ == "__main__":
-    demo.queue(default_concurrency_limit=4).launch()
+    demo.queue(default_concurrency_limit=2).launch()
